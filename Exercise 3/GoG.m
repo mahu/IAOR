@@ -1,8 +1,4 @@
 function [Ix,Iy] = GoG  (input,standardDeviation)
-%function GoG  (input,standardDeviation)
-
-%=================================================
-%A.a)
 
 kernelSize = round(3 * standardDeviation);
 
@@ -18,9 +14,6 @@ Gx = ((-1 * c_x)/(2*pi*standardDeviation^4)).*exp((-1*(c_x.^2+c_y.^2))/(2*standa
 
 
 Gy = Gx';
-
-%=================================================
-%A.b)
 
 %calculate the origin of the mask elements
 origin = floor((size(Gx)+1)/2);

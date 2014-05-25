@@ -5,7 +5,6 @@ close all;
 %A. a)
 input = imread('input_ex3.jpg');
 grayscale = mat2gray(mean(input,3));
-
 %=================================================
 %A. b)
 [Ix,Iy] = GoG(grayscale,0.5);
@@ -21,26 +20,24 @@ GradientMagnitude_binary = im2bw(GradientMagnitude,0.07);
 %Results A. a)-d)
 
 figure('name','Gradient of Gaussian');
-subplot(1,3,1),imshow(grayscale,[]),title('grayscale image');
-subplot(1,3,2),imshow(GradientMagnitude,[]),title('gradient of gaussian');
-subplot(1,3,3),imshow(GradientMagnitude_binary,[]),title('thresholding');
+imshow(grayscale,[]),title('grayscale image');
+figure('name','Gradient of Gaussian');
+imshow(GradientMagnitude,[]),title('gradient of gaussian');
+figure('name','Gradient of Gaussian');
+imshow(GradientMagnitude_binary,[]),title('thresholding');
+
 
 %=================================================
 [H,T,R] = hough_edge_detect(Ix, Iy, GradientMagnitude_binary);
-size(T)
-size(R)
-size(H)
 figure('name','Hough Voting Result');
 imshow(H);
 
-peaks = houghpeaks(H,1000)
-figure('name','Hough Voting Result');
+peaks = houghpeaks(H,100)
+figure('name','Houghpeaks');
 imshow(H);
 hold on;
 plot((peaks(:,2)),(peaks(:,1)),'+','color','red');
 hold off;
-T(peaks(:,2))
-R(peaks(:,1))
 % lines = houghlines(GradientMagnitude_binary,T,R,peaks)
 % figure('name','Houghlines');
 % imshow(input);
