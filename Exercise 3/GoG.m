@@ -11,7 +11,7 @@ c_x = zeros((kernelSize*2)+1);
 for j = -1 * kernelSize : kernelSize
     c_x(:,j+kernelSize+1) = j;
 end
-
+ 
 c_y = c_x';
 
 Gx = ((-1 * c_x)/(2*pi*standardDeviation^4)).*exp((-1*(c_x.^2+c_y.^2))/(2*standardDeviation^2));
