@@ -13,7 +13,7 @@ imshow(trainingImgBW);
 boundaries = bwboundaries(trainingImgBW);
 b = boundaries{1};
 
-D_train = descriptorExtract(b)
+D_train = descriptorExtract(b);
 %-------------------------------------------------------------------
 
 %load test img + find boundaries
@@ -29,20 +29,48 @@ boundaries3 = bwboundaries(test2ImgBW);
 %for every boundary -> extract D
 thresh = 0.06;
 boundaries_found = [];
+positions = [];
+
 for i= 1:size(boundaries2,1)
     b_test = boundaries2{i};
     if(size(b_test,1) > 23)
         D_test = descriptorExtract(b_test);
         distance = norm(D_test - D_train);
         if distance < thresh
-            boundaries_found = [boundaries_found' ; D_test']';
+            boundaries_found = [boundaries_found ; i]';
         end
     end
-    
-       % compare D with D_train
-       % accept similar Ds
-       % keep related boundary 
 end
-
-boundaries_found
 % plot all kept boundaries onto test img
+boundaries_found;
+points = boundaries2{4}
+figure;
+imshow(test1Img);
+hold on;
+plot(boundaries2{4}(:,2), boundaries2{4}(:,1), 'r', 'Linewidth', 3)
+hold off;
+
+boundaries_found = [];
+positions = [];
+
+for i= 1:size(boundaries3,1)
+    b_test = boundaries3{i};
+    if(size(b_test,1) > 23)
+        D_test = descriptorExtract(b_test);
+        distance = norm(D_test - D_train);
+        if distance < thresh
+            boundaries_found = [boundaries_found ; i]';
+            disp('JA');
+        end
+    end
+end
+% plot all kept boundaries onto test img
+boundaries_found;
+points = boundaries3{boundaries_found(1)}
+figure;
+imshow(test2Img);
+hold on;
+plot(boundaries3{boundaries_found(1)}(:,2), boundaries3{boundaries_found(1)}(:,1), 'r', 'Linewidth', 3)
+hold off;
+
+
