@@ -9,5 +9,6 @@ function D_f = descriptorExtract(boundary)
     D_f = D_f./abs(D_f(2));
     %orientation
     D_f = abs(D_f);
+
 end
 
