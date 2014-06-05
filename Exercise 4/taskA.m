@@ -15,9 +15,9 @@ subplot(2,1,2), imshow(input_noise);
 figure('Name','FFT_IMAGE');
 imagesc(fft_image);
 
-sigma = 0.5;
+sigma = 1.5;
 G = gauss_filter(4*sigma,sigma);
-G = G/max(max(G));
+%G = G/max(G(:));
 Filter = zeros(size(input));
 
 %Filter(1:size(G,1), 1:size(G,2)) = G(:,:);
@@ -45,9 +45,6 @@ imagesc(mat2gray(log(abs(mult)+1)));
 
 result = ifft2(mult);
 figure('Name','Ergebnis(intensity)');
-imagesc(mat2gray(log(abs(result)+1)));
-
-
-
-
-
+%subplot(2,1,1),imagesc(mat2gray(log(abs(result)+1)));
+subplot(2,1,1),imshow(mat2gray(log(abs(result)+1)));
+subplot(2,1,2),imshow(input_noise);
