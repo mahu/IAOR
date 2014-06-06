@@ -32,7 +32,7 @@ figure;
 subplot(1,2,1),imagesc(fft_image), title('noise image');
 subplot(1,2,2),imagesc(mat2gray(log(abs(filtered_image)+1))), title('filtered image');
 
-result = ifft2(mult);
+result = ifft2(filtered_image);
 figure('Name','Result Spatial Domain');
 subplot(1,3,1), imshow(input), title('input image');
 subplot(1,3,2),imshow(input_noise),title('noise image');
