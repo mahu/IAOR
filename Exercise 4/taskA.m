@@ -28,7 +28,7 @@ fft_filter = mat2gray(log(abs(fft_filter_raw)+1));
 %imagesc(fft_filter)
 
 filtered_image = fft_image_raw.*fft_filter_raw;
-figure;
+figure('Name', 'Result Frequency Domain');
 subplot(1,2,1),imagesc(fft_image), title('noise image');
 subplot(1,2,2),imagesc(mat2gray(log(abs(filtered_image)+1))), title('filtered image');
 
