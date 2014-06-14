@@ -80,10 +80,53 @@ end
 % After computation there will be not longer a separation of minima and
 % maxima!
 function [Keypoints, Locations] = ComputeDescriptor(Magnitude_Pyramid, Angle_Pyramid, Extrema, Sigmas, img_size)
+
+window_size = 16;
+gaussian_filter = gauss_filter(49, 0.5*window_size);
+
+for scale_index = 1:1%size(Angle_Pyramid,2)
+    angle_cell = Angle_Pyramid{scale_index};
     
-
-
-
+    for keypoint_x = 1:1%size(angle_cell,1)
+        for keypoint_y = 1:size(angle_cell,2)
+            
+            xc = repmat([-7.5:7.5], [16,1]);
+            yc = xc';
+            
+            theta_rad = deg2rad(angle_cell(keypoint_x, keypoint_y) - 90);
+            xc_ = sin(theta_rad)*yc + cos(theta_rad)*xc;
+            yc_ = cos(theta_rad)*yc - sin(theta_rad)*xc;
+            
+            sigma_n = Sigmas(scale_index);
+            xc_center = round(xc_ +24.5);
+            yc_center = round(yc_ +24.5);
+            
+            gauss_filter_sampled = zeros(16);
+           for x_value=1:size(xc_center,1)
+               for y_value = 1:size(yc_center,1) 
+                    gauss_filter_sampled(x_value,y_value) = gaussian_filter(xc_center(x_value,y_value),yc_center(x_value,y_value));
+               end
+           end
+            if (scale_index == 1) 
+                imshow(gauss_filter_sampled, []);
+            end
+            
+        end
+    end
+end
+% - for all scales
+%     - for all points in current scale
+%         - Initialize arrays Xc,Yc with local image coordinates for a 16×16 neighborhood
+%         - Rotate local coordinates Xc and Yc using main orientation thetaM 
+%         Determine nearest scale sigmaN
+%         Sample Gaussian window, magnitude and angle image at sigmaN ? Gs,Ms,thetaS
+%         Compute weighted gradient magnitude Mw = Gs.?Ms
+%         Rotate magnitude angles of thetaS by thetaSrot = ?thetaS ? thetaM
+%         Build the 16 histograms with 8 bins (each bin covers 360/8 = 45 degrees)
+%         Build descriptor vector ? rearrange values of Histograms (128 bins) to a vector
+%         Normalize the vector
+%     end
+%    end
 end
 
 
