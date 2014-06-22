@@ -29,6 +29,7 @@
 %   - MatchSIFTFeatures to do step 9
 %   - VisualizeMatches to do step 10
 function TestSIFTFeatures
+    close all;
 
     % select and import image data
     [file1, path1, image1, img_size1] = read_image('Select file 1 for processing');
@@ -81,54 +82,130 @@ end
 % maxima!
 function [Keypoints, Locations] = ComputeDescriptor(Magnitude_Pyramid, Angle_Pyramid, Extrema, Sigmas, img_size)
 
-window_size = 16;
-gaussian_filter = gauss_filter(49, 0.5*window_size);
+    % Created by:
+    % Felicitas Höbelt
+    % Malik Al-Hallak
+    % Sebastian Utzig
 
-for scale_index = 1:1%size(Angle_Pyramid,2)
-    angle_cell = Angle_Pyramid{scale_index};
+    window_size = 16;
+    gaussian_filter         = gauss_filter(49, 0.5*window_size);
+    gauss_filter_sampled    = zeros(window_size);
+    magn_sampled            = zeros(window_size);
+    angle_sampled           = zeros(window_size);
+    xc = repmat([-7.5:7.5], [16,1]);
+    yc = xc';
+    Keypoints = [];
+    Locations = [];
+
     
-    for keypoint_x = 1:1%size(angle_cell,1)
-        for keypoint_y = 1:size(angle_cell,2)
-            
-            xc = repmat([-7.5:7.5], [16,1]);
-            yc = xc';
-            
-            theta_rad = deg2rad(angle_cell(keypoint_x, keypoint_y) - 90);
-            xc_ = sin(theta_rad)*yc + cos(theta_rad)*xc;
-            yc_ = cos(theta_rad)*yc - sin(theta_rad)*xc;
-            
-            sigma_n = Sigmas(scale_index);
-            xc_center = round(xc_ +24.5);
-            yc_center = round(yc_ +24.5);
-            
-            gauss_filter_sampled = zeros(16);
-           for x_value=1:size(xc_center,1)
-               for y_value = 1:size(yc_center,1) 
-                    gauss_filter_sampled(x_value,y_value) = gaussian_filter(xc_center(x_value,y_value),yc_center(x_value,y_value));
-               end
-           end
-            if (scale_index == 1) 
-                imshow(gauss_filter_sampled, []);
+    for scale_index = 1:size(Extrema,2)
+        angle_cell  = Angle_Pyramid{scale_index};
+        magn_cell   = Magnitude_Pyramid{scale_index};
+        extrema_cell= Extrema{scale_index}; %Extrema-cell : [y,x,sigma,orientation,magnitude]
+
+
+
+        for keypoint_index = 1:size(extrema_cell,1)
+
+            % Rotate local coordinates using main orientation
+            theta_rad = deg2rad(extrema_cell(keypoint_index,4));
+
+            xc_rot = sin(theta_rad)*yc + cos(theta_rad)*xc;
+            yc_rot = cos(theta_rad)*yc - sin(theta_rad)*xc;
+
+            % Translate rotated coordinates to center of gauss window
+            xc_center_g = round(xc_rot +24.5);
+            yc_center_g = round(yc_rot +24.5);
+
+            % Translate rotated coordinates to keypoint
+            xc_center_k = round(xc_rot +extrema_cell(keypoint_index,1));
+            yc_center_k = round(yc_rot +extrema_cell(keypoint_index,2));
+
+            % Iterate through 16x16 coordinate matrices
+            for x_value=1:window_size
+                for y_value = 1:window_size
+                    
+                    %Sample gauss filter at coordinates extracted from
+                    %matrices
+                    gauss_filter_sampled(x_value,y_value) = gaussian_filter(yc_center_g(x_value,y_value),xc_center_g(x_value,y_value));
+
+                    % Get coordinates to sample angle and magnitude
+                    % image
+                    x = xc_center_k(x_value,y_value);
+                    y = yc_center_k(x_value,y_value);
+                    
+                    %check wether coordinates lie in image - set values to
+                    %0 otherwise (out of bounds)
+                    if(x > size(magn_cell,1) | x < 1 | y > size(magn_cell,2) | y < 1)
+                        magn_sampled(x_value,y_value) = 0;
+                        angle_sampled(x_value,y_value) = 0;
+                    else
+                        % Sample both images on inbound coordinates
+                        magn_sampled(x_value,y_value) = magn_cell (x,y);
+                        angle_sampled(x_value,y_value)= angle_cell(x,y);
+                    end
+
+                end
             end
             
-        end
-    end
-end
-% - for all scales
-%     - for all points in current scale
-%         - Initialize arrays Xc,Yc with local image coordinates for a 16×16 neighborhood
-%         - Rotate local coordinates Xc and Yc using main orientation thetaM 
-%         Determine nearest scale sigmaN
-%         Sample Gaussian window, magnitude and angle image at sigmaN ? Gs,Ms,thetaS
-%         Compute weighted gradient magnitude Mw = Gs.?Ms
-%         Rotate magnitude angles of thetaS by thetaSrot = ?thetaS ? thetaM
-%         Build the 16 histograms with 8 bins (each bin covers 360/8 = 45 degrees)
-%         Build descriptor vector ? rearrange values of Histograms (128 bins) to a vector
-%         Normalize the vector
-%     end
-%    end
-end
+            % Compute weighted gradient magnitude and rotate sampled local
+            % gradient directions
+            magn_weigthed   = gauss_filter_sampled.*magn_sampled;
+            angle_rot       = angle_sampled - extrema_cell(keypoint_index,4);
 
+            % Create 16 histograms (one per 4*4px patch) in each row
+            histo_window = zeros(16,8);
+
+            % Iterate through histogram list (one patch/histogram per row)
+            hist_x = 1; % 1-4
+            hist_y = 1; % 1-4
+            for hist_index = 1:size(histo_window,2) %every row is a histogram with 8 bins -> for (all rows)
+
+                % Create patch submatrices from whole windows by stepsize 4
+                angle_submat = angle_rot(hist_y*4-3 : hist_y*4 ,hist_x*4-3 : hist_x*4);
+                magn_submat = magn_weigthed(hist_y*4-3 : hist_y*4 ,hist_x*4-3 : hist_x*4);
+
+                % Iterate through current patch
+                for i = 1:16
+                    a = angle_submat(i);
+                    % Just use positive angles
+                    if (a < 0)
+                        a = a + 360;
+                    end
+                    % Discretize angle direction - start with first bin
+                    % between 0 and 45 degrees
+                    bin_index = ceil(a/45);
+                    % Add related gradient magnitude to the obtained bin
+                    % index
+                    histo_window(hist_index, bin_index) = histo_window(hist_index, bin_index) + magn_submat(i);
+                end
+                
+                % Update patch iteration indices for each new patch
+                hist_x = hist_x + 1;
+                if(hist_x>3)
+                    hist_x = 1;
+                    hist_y = hist_y +1;
+                end
+            end
+
+            % Create descriptor vector by adding every row of histo_window
+            % matrix to it
+            d = reshape(histo_window',1,128);
+            % Normalize and crop
+            d = d/norm(d);
+            d(d>0.2)=0.2;
+            d = d/norm(d);
+
+            Keypoints = [Keypoints; d];
+            
+            Locations = [Locations; extrema_cell(keypoint_index, :)];
+
+
+        end
+
+    end
+
+end
 
 %--------------------------------------------------------------------------
 
