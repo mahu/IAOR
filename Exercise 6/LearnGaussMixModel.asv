@@ -97,12 +97,8 @@ function LnVectorProb = CalcLnVectorProb(model, trainVect)
     LnVectorProb = [];
     %size(LnVectorProb)
     
-    weights = model.weight;
-    
-    
     %iterate trough all clusters
-    %for cluster_id = 1:size(model,1)
-    for cluster_id = 1:size(weights,1)
+    for cluster_id = 1:size(model,1)
         
         alpha_c = model.weight(cluster_id);
         my_c = model.mean(cluster_id,:);
@@ -113,15 +109,15 @@ function LnVectorProb = CalcLnVectorProb(model, trainVect)
             
             feature_vec = trainVect(feature_id,:);
             
-            %feature_vec
+            feature_vec
             
-            %log(det(Sigma_c))
+            log(det(Sigma_c))
             
             % is there any difference between Sigma_c and Sigma_c^k????
             % log(det(Sigma_c)) is -Infinity!!!!!
             % used first (feature_vec-my_c) and later transposed one because of
             % matrix dimensions!!!????
-            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+(feature_vec-my_c)*Sigma_c'*(feature_vec-my_c)');
+            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+(feature_vec-my_c)'.*Sigma_c'*(feature_vec-my_c)');
             
             prob_c = [prob_c,logProb];
             
@@ -131,8 +127,8 @@ function LnVectorProb = CalcLnVectorProb(model, trainVect)
          
     end
     
-    %size(LnVectorProb)
-    %LnVectorProb
+    size(LnVectorProb)
+    LnVectorProb
 
 end
 
