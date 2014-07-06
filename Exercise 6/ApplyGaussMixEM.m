@@ -43,13 +43,41 @@ end
 
 
 %--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
-% PASTE HERE YOUR IMPLEMENTED FUNCTION CalcLnVectorProb (TASK B.a)
-%--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
+% logarithmic probability of all vectors for all components
+function LnVectorProb = CalcLnVectorProb(model, trainVect)
 
+    %(TASK A.a)
+    % Created by:
+    % Felicitas Höbelt
+    % Malik Al-Hallak
+    % Sebastian Utzig
+
+    % initialize return matrix
+    LnVectorProb = [];
+
+    weights = model.weight;
+
+    %iterate trough all clusters
+    for cluster_id = 1:size(weights,1)
+        
+        alpha_c = model.weight(cluster_id);
+        my_c = model.mean(cluster_id,:);
+        Sigma_c = squeeze(model.covar(cluster_id,:,:));
+        
+        prob_c =[];
+        for feature_id = 1:size(trainVect,1)
+            
+            feature_vec = trainVect(feature_id,:);            
+            diff = feature_vec'-my_c';
+               
+            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+diff'*inv(Sigma_c)*diff);
+            
+            prob_c = [prob_c,logProb];
+            
+        end        
+        LnVectorProb = [LnVectorProb;prob_c];        
+    end
+end
 
 
 %--------------------------------------------------------------------------

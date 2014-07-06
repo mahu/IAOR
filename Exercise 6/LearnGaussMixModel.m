@@ -78,49 +78,37 @@ end
 % logarithmic probability of all vectors for all components
 function LnVectorProb = CalcLnVectorProb(model, trainVect)
 
-% IMPLEMENT THIS FUNCTION (TASK A.a)
+    %(TASK A.a)
+    % Created by:
+    % Felicitas Höbelt
+    % Malik Al-Hallak
+    % Sebastian Utzig
 
-%• model.weight: Vector with cluster weights 
-%• model.weight(c): Weight alpha_c of component c
-%• model.mean: Mean vectors my of all components 
-%• model.mean(c,:): Mean vector my_c(3 elements) of component c
-%• model.covar: Covariance matrices ? of all components 
-%• squeeze(model.covar(c,:,:)): Covariance matrix ?_c (3×3 elements) of component
-
-%trainVect(i,:): 3-element feature vector
-    
     % initialize return matrix
     LnVectorProb = [];
 
     weights = model.weight;
-    
-    
+
     %iterate trough all clusters
-    %for cluster_id = 1:size(model,1)
     for cluster_id = 1:size(weights,1)
         
         alpha_c = model.weight(cluster_id);
-        my_c = model.mean(cluster_id,:)';
+        my_c = model.mean(cluster_id,:);
         Sigma_c = squeeze(model.covar(cluster_id,:,:));
         
         prob_c =[];
         for feature_id = 1:size(trainVect,1)
             
-            feature_vec = trainVect(feature_id,:)';
+            feature_vec = trainVect(feature_id,:);            
+            diff = feature_vec'-my_c';
                
-            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+(feature_vec-my_c)'*Sigma_c'*(feature_vec-my_c));
+            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+diff'*inv(Sigma_c)*diff);
             
             prob_c = [prob_c,logProb];
             
-        end
-        
-        LnVectorProb = [LnVectorProb;prob_c];
-         
+        end        
+        LnVectorProb = [LnVectorProb;prob_c];        
     end
-    
-    %size(LnVectorProb)
-    %LnVectorProb
-
 end
 
 %--------------------------------------------------------------------------
@@ -129,8 +117,12 @@ end
 % components using the current model parameters
 function LnCompProb = GmmEStep(model, trainVect)
 
-% IMPLEMENT THIS FUNCTION (TASK A.b)
-
+    %(TASK A.b)
+    % Created by:
+    % Felicitas Höbelt
+    % Malik Al-Hallak
+    % Sebastian Utzig
+    
     lnVectorProb = CalcLnVectorProb(model, trainVect);
     
     %initialize result
@@ -145,12 +137,9 @@ function LnCompProb = GmmEStep(model, trainVect)
   
         denominators = [denominators,denom_i];
     end
-    
-    
+        
     for cluster_id = 1:size(lnVectorProb,1)
         for feature_id = 1:size(lnVectorProb,2)
-            % log(nominator/denominator) = log(nominator)-log(denominator)
-            % values already logarithmic!!!!!
             LnCompProb(cluster_id,feature_id) = lnVectorProb(cluster_id,feature_id) - denominators(1,feature_id);
         end
     end
@@ -163,11 +152,14 @@ end
 % of the E-Step
 function model = GmmMStep(model, trainVect, LnCompProb)
     
-% IMPLEMENT THIS FUNCTION (TASK A.c)
+    %(TASK A.c)
+    % Created by:
+    % Felicitas Höbelt
+    % Malik Al-Hallak
+    % Sebastian Utzig
 
     for cluster_id = 1:size(LnCompProb,1)
         
-        %no log-values! -> exp()
         Np= sum(exp(LnCompProb(cluster_id,:)));
 
         alpha_c = Np/size(LnCompProb,2);
@@ -190,10 +182,7 @@ function model = GmmMStep(model, trainVect, LnCompProb)
         Sigma_c = (1/Np)*Sigma_c;
         model.covar(cluster_id,:,:) = Sigma_c;
         
-        
     end
-
-
 end
 
 %--------------------------------------------------------------------------
