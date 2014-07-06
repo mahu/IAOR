@@ -10,8 +10,28 @@ function ApplyGaussMixEM
     %--------------------------------------------------------------------------
     % number of desired components (clusters)
     % vary this parameter to find an appropriate value for the input
-    % image (Task )!!!
-    n_comp = 2;
+    % image (Task ):
+    
+    %n_comp = 2 :   Separates dark colors(blue,green) and edges(black) well
+    %               from bright colors and background
+    %n_comp = 3 :   Same as n_comp=2 + additional cluster for white color
+    %n_comp = 4 :   Due to illumination changes the clustering between dark
+    %               colors(blue,green,black) fails (even in same color field
+    %               of upper corner);cluster(yellow,orange,red) and cluster
+    %               (white)ok
+    %n_comp = 5 :   Result gets worse - different clusterings on each side
+    %               of cube -> incosistent due to illumination changes
+    %n_comp = 6 :   Cant find clear clusters anymore (except black&white);
+    %               result too inconsistent again
+    %general    :   Similar colors are difficult to distinguish with higher
+    %               number of clusters and easy to group with low number
+    %               of clusters.
+    %               Since illumination changes are higher than intensity
+    %               changes of two different colors a separation of all 6
+    %               different colors is impossible.
+    %suitable   :   n_comp = 3 (clear and consistent clustering)
+    
+    n_comp = 3;
     %--------------------------------------------------------------------------
     
     % reshaping of vectors for input of EM
