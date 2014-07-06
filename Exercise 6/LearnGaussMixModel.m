@@ -88,15 +88,10 @@ function LnVectorProb = CalcLnVectorProb(model, trainVect)
 %• squeeze(model.covar(c,:,:)): Covariance matrix ?_c (3×3 elements) of component
 
 %trainVect(i,:): 3-element feature vector
-
-    %size(trainVect)
-    %size(model)
     
     % initialize return matrix
-    %LnVectorProb = zeros(size(model,1),size(trainVect,1));
     LnVectorProb = [];
-    %size(LnVectorProb)
-    
+
     weights = model.weight;
     
     
@@ -105,23 +100,15 @@ function LnVectorProb = CalcLnVectorProb(model, trainVect)
     for cluster_id = 1:size(weights,1)
         
         alpha_c = model.weight(cluster_id);
-        my_c = model.mean(cluster_id,:);
+        my_c = model.mean(cluster_id,:)';
         Sigma_c = squeeze(model.covar(cluster_id,:,:));
         
         prob_c =[];
         for feature_id = 1:size(trainVect,1)
             
-            feature_vec = trainVect(feature_id,:);
-            
-            %feature_vec
-            
-            %log(det(Sigma_c))
-            
-            % is there any difference between Sigma_c and Sigma_c^k????
-            % log(det(Sigma_c)) is -Infinity!!!!!
-            % used first (feature_vec-my_c) and later transposed one because of
-            % matrix dimensions!!!????
-            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+(feature_vec-my_c)*Sigma_c'*(feature_vec-my_c)');
+            feature_vec = trainVect(feature_id,:)';
+               
+            logProb = log(alpha_c)-0.5*(log(det(Sigma_c))+(feature_vec-my_c)'*Sigma_c'*(feature_vec-my_c));
             
             prob_c = [prob_c,logProb];
             
@@ -178,10 +165,6 @@ function model = GmmMStep(model, trainVect, LnCompProb)
     
 % IMPLEMENT THIS FUNCTION (TASK A.c)
 
-    trainVect
-    
-    size(trainVect)
-
     for cluster_id = 1:size(LnCompProb,1)
         
         %no log-values! -> exp()
@@ -197,14 +180,16 @@ function model = GmmMStep(model, trainVect, LnCompProb)
         end
         my_c = (1/Np)*my_c;
         model.mean(cluster_id,:) = my_c;
-        
+                
         Sigma_c = 0;
         for feature_id = 1:size(LnCompProb,2)
-            summand = (trainVect(feature_id,:)-my_c)*(trainVect(feature_id,:)-my_c)'*exp(LnCompProb(cluster_id,feature_id));
+            diff = trainVect(feature_id,:)'-my_c';
+            summand = diff*diff'*exp(LnCompProb(cluster_id,feature_id));
             Sigma_c = Sigma_c + summand;
         end
         Sigma_c = (1/Np)*Sigma_c;
         model.covar(cluster_id,:,:) = Sigma_c;
+        
         
     end
 
